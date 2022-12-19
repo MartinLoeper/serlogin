@@ -80,7 +80,7 @@ def read_until_timeout(sd, timeout):
     data = ""
     while time.time() < endtime:
         x = sd.read(10000)
-        data += x
+        data += x.decode()
 
     dprint("in read_until_timeout(%d): x='%s'" % (timeout, data))
     sd.timeout = saved_timeout
@@ -113,7 +113,7 @@ def read_until_data(sd, endtime, expected_data):
         if x=="\r":
             continue
 
-        data += x
+        data += x.decode()
 
         if data.find(expected_data) != -1:
             dprint("in read_until_data: data='%s'" % data)
