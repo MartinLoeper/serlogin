@@ -285,7 +285,7 @@ def main(arglist):
     sd.write(str.encode(user+"\n"))
 
     # drain the port (could be shell prompt or password prompt)
-    data = read_until_timeout(sd, 2)
+    data = read_until_timeout(sd, 4)
     dprint("Received data '%s'" % data)
 
     if password != None:
