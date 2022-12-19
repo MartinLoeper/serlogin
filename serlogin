@@ -268,58 +268,7 @@ def main(arglist):
     sd.open()
     sd.flushInput()
     sd.flushOutput()
-
-    if command:
-        vprint("Writing command '%s' to serial port" % command)
-        sd.write(str.encode(command + "\n"))
-        sd.flush()
-
-    # we start either at a shell prompt, or at a login prompt
-    # FIXTHIS - could be at a secondary shell prompt - handle that case too
-    # FIXTHIS - could be in middle of command entry - handle that case too
-    #  (try issuing a \n and see if we get a shell prompt)
-
-    # do a test command to see if we're logged in
-    dprint("writing 'ls / | grep ^sb.*n' to serial port")
-    sd.write(str.encode("ls / | grep ^sb.*n\n"))
-    result = read_until_timeout(sd, 1)
-    need_logout = False
-    if result.find("sbin") != -1:
-        vprint("Port %s appears to be at a shell prompt" % sd.port)
-        # FIXTHIS - shortcut: verify that we are logged in as the requested user
-        sd.write(str.encode("id\n"))
-        # this next line doesn't work
-        data = read_until_timeout(sd, 0.5)
-        dprint("data from id: '%s'" % data)
-        id_user = "(%s)" % user
-        # user name must appear before 'gid' in the output from 'id'
-        user_pos = data.find(id_user)
-        gid_pos = data.find("gid")
-        if user_pos != -1 and user_pos < gid_pos:
-            print("Logged in as user %s" % user)
-            return 0
-        else:
-            vprint("Not logged in as user %s" % user)
-            need_logout=True
-    else:
-        dprint("Serial port %s is NOT at a shell prompt" % sd.port)
-        need_logout=False
-
-    if need_logout:
-        # First - try to log out (and get to the login prompt)
-        # FIXTHIS - this doesn't work on systems where init doesn't invoke
-        # /bin/login (and/or inittab doesn't respawn getty for the line)
-        dprint("Attempting to exit existing shell")
-        sd.write(str.encode("exit\n"))
-
-        # if we were already at the login prompt, exit may be interpreted
-        # as the user name, and we could be at a password prompt.  Just
-        # enter nothing.  If we ended up at a login prompt after exiting,
-        # sending a line feed should not prompt for password.
-        prompt = read_until_timeout(sd, 1)
-        dprint("Sending line feed.")
-        sd.write(str.encode("\n"))
-
+    
     retcode = 1
 
     # perform login attempt
@@ -362,6 +311,11 @@ def main(arglist):
         dprint("/sbin found (first attempt).")
         vprint("Port %s appears to be at a shell prompt." % sd.port)
         print("Logged in as user %s" % user)
+        if command:
+            vprint("Writing command '%s' to serial port" % command)
+            sd.write(str.encode(command + "\n"))
+            sd.flush()
+        
         retcode = 0
     else:
         dprint("/sbin not found (first attempt).")
